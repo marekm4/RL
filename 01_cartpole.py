@@ -37,7 +37,7 @@ def iterate_batches(env, net, batch_size):
     obs = env.reset()
     sm = nn.Softmax(dim=1)
     while True:
-        env.render()
+        # env.render()
         obs_v = torch.FloatTensor([obs])
         act_probs_v = sm(net(obs_v))
         act_probs = act_probs_v.data.numpy()[0]
@@ -77,14 +77,21 @@ def filter_batch(batch, percentile):
 
 
 if __name__ == "__main__":
-    env = gym.make("CartPole-v0")
+    from_best = True
+    env = gym.make("LunarLander-v2")
     obs_size = env.observation_space.shape[0]
     n_actions = env.action_space.n
 
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
+    if from_best:
+        net.load_state_dict(torch.load('model.pth'))
+        # net.eval()
     objective = nn.CrossEntropyLoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
 
+    with open('best.txt') as f:
+        best_reward_m = float(f.readline())
+        print(f'last best {best_reward_m}')
     for iter_no, batch in enumerate(iterate_batches(
             env, net, BATCH_SIZE)):
         obs_v, acts_v, reward_b, reward_m = \
@@ -96,9 +103,11 @@ if __name__ == "__main__":
         optimizer.step()
         print("%d: loss=%.3f, reward_mean=%.1f, rw_bound=%.1f" % (
             iter_no, loss_v.item(), reward_m, reward_b))
-        print("loss", loss_v.item(), iter_no)
-        print("reward_bound", reward_b, iter_no)
-        print("reward_mean", reward_m, iter_no)
-        if reward_m > 199:
+        if reward_m > best_reward_m:
+            torch.save(net.state_dict(), 'model.pth')
+            best_reward_m = reward_m
+            with open('best.txt', "w") as myfile:
+                myfile.write(str(best_reward_m))
+        if reward_m >= 212:
             print("Solved!")
             break
