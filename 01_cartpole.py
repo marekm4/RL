@@ -42,6 +42,8 @@ def iterate_batches(env, net, batch_size):
         act_probs_v = sm(net(obs_v))
         act_probs = act_probs_v.data.numpy()[0]
         action = np.random.choice(len(act_probs), p=act_probs)
+        if np.sum(obs[-2:]) == 2:
+            action = 0
         next_obs, reward, is_done, _ = env.step(action)
         episode_reward += reward
         step = EpisodeStep(observation=obs, action=action)
@@ -108,6 +110,6 @@ if __name__ == "__main__":
             best_reward_m = reward_m
             with open('best.txt', "w") as myfile:
                 myfile.write(str(best_reward_m))
-        if reward_m >= 212:
-            print("Solved!")
-            break
+        # if reward_m >= 212:
+        #     print("Solved!")
+        #     break
