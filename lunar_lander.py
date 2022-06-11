@@ -1,9 +1,10 @@
 import gym
 import numpy as np
+from gym.wrappers.monitoring.video_recorder import VideoRecorder
 
 env = gym.make("LunarLander-v2")
 observation, info = env.reset(seed=42, return_info=True)
-
+video = VideoRecorder(env, "recording.mp4")
 
 class Agent:
     def __init__(self):
@@ -29,6 +30,7 @@ total_rewards = [0] * 10
 agent = Agent()
 for _ in range(10000):
     env.render()
+    video.capture_frame()
     action = agent.policy(observation)  # User-defined policy function
     observation, reward, done, info = env.step(action)
     total_rewards[episode] += reward
@@ -38,6 +40,7 @@ for _ in range(10000):
         episode += 1
     if episode == 10:
         break
+video.close()
 env.close()
 
 print(total_rewards)
