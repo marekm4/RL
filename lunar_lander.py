@@ -14,6 +14,11 @@ class Agent:
         self.step += 1
         velocity_v = -observation[3]
         velocity_h = observation[2]
+        if abs(velocity_h) > .4 and self.step % 3 != 0:
+            if velocity_h < 0:
+                return 3
+            elif velocity_h > 0:
+                return 1
         if velocity_v > .6:
             if abs(velocity_h) < .3 or self.step % 4 != 0:
                 return 2
